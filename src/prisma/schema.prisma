@@ -1,0 +1,237 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  BUYER
+  SELLER
+  AGENT
+  ADMIN
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  PLOT
+  COMMERCIAL
+  HOUSE
+  PENTHOUSE
+  STUDIO
+  TOWNHOUSE
+  LAND
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  SOLD
+  RENTED
+  PENDING
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentType {
+  BOOKING_DEPOSIT
+  BROKERAGE_FEE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  password     String
+  role         Role     @default(BUYER)
+  profileImage String?
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  agent         Agent?
+  properties    Property[]     @relation("UserProperties")
+  inquiries     Inquiry[]
+  bookings      Booking[]
+  payments      Payment[]
+  reviews       Review[]
+  favorites     Favorite[]
+  notifications Notification[]
+}
+
+model Agent {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agencyName        String?
+  licenseNumber     String?
+  bio               String?
+  rating            Float    @default(0.0)
+  yearsOfExperience Int      @default(0)
+  verifiedStatus    Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  properties      Property[]
+  reviewsReceived Review[]   @relation("AgentReviews")
+}
+
+model Property {
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  propertyType  PropertyType
+  listingType   ListingType
+  price         Float
+  area          Float
+  bedrooms      Int
+  bathrooms     Int
+  floor         Int?
+  totalFloors    Int?
+  furnishing    String?
+  amenities     Json           @default("[]")
+  address       String
+  city          String
+  state         String
+  pincode       String
+  latitude      Float
+  longitude     Float
+  ownerId       String
+  owner         User           @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
+  agentId       String?
+  agent         Agent?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  status        PropertyStatus @default(AVAILABLE)
+  isFeatured    Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  images    PropertyImage[]
+  documents PropertyDocument[]
+  inquiries Inquiry[]
+  bookings  Booking[]
+  payments  Payment[]
+  reviews   Review[]           @relation("PropertyReviews")
+  favorites Favorite[]
+
+  @@index([city])
+  @@index([price])
+  @@index([propertyType])
+  @@index([status])
+  @@index([latitude])
+  @@index([longitude])
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  url        String
+  isPrimary  Boolean  @default(false)
+  order      Int      @default(0)
+}
+
+model PropertyDocument {
+  id           String   @id @default(uuid())
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  documentType String
+  url          String
+  uploadedAt   DateTime @default(now())
+}
+
+model Inquiry {
+  id         String        @id @default(uuid())
+  propertyId String
+  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message    String
+  status     InquiryStatus @default(NEW)
+  createdAt  DateTime      @default(now())
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  propertyId    String
+  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  status        BookingStatus @default(PENDING)
+  notes         String?
+}
+
+model Payment {
+  id                    String        @id @default(uuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId            String
+  property              Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amount                Float
+  currency              String        @default("usd")
+  type                  PaymentType
+  status                PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?       @unique
+  createdAt             DateTime      @default(now())
+}
+
+model Review {
+  id         String    @id @default(uuid())
+  propertyId String?
+  property   Property? @relation("PropertyReviews", fields: [propertyId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?    @relation("AgentReviews", fields: [agentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String
+  createdAt  DateTime  @default(now())
+}
+
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

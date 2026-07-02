@@ -1,0 +1,219 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Real Estate Backend API",
+    "version": "1.0.0",
+    "description": "Complete production-ready backend API documentation for Zillow/99acres-like real estate platform."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Something went wrong" },
+          "errors": { "type": "object", "nullable": true }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "John Doe" },
+                  "email": { "type": "string", "example": "john@example.com" },
+                  "password": { "type": "string", "example": "password123" },
+                  "phone": { "type": "string", "example": "+1234567890" },
+                  "role": { "type": "string", "enum": ["BUYER", "SELLER", "AGENT", "ADMIN"], "example": "BUYER" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "400": { "description": "Validation error or email already exists" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log in an existing user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "john@example.com" },
+                  "password": { "type": "string", "example": "password123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful, returns tokens" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get authenticated user profile details",
+        "responses": {
+          "200": { "description": "Profile details retrieved" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/properties": {
+      "post": {
+        "tags": ["Properties"],
+        "summary": "Create a new property listing (Seller/Agent only)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description", "propertyType", "listingType", "price", "area", "bedrooms", "bathrooms", "address", "city", "state", "pincode", "latitude", "longitude"],
+                "properties": {
+                  "title": { "type": "string", "example": "Modern Cozy Villa" },
+                  "description": { "type": "string", "example": "Beautiful 3 BHK luxury villa with swimming pool." },
+                  "propertyType": { "type": "string", "enum": ["APARTMENT", "VILLA", "PLOT", "COMMERCIAL", "HOUSE", "PENTHOUSE", "STUDIO", "TOWNHOUSE", "LAND"], "example": "VILLA" },
+                  "listingType": { "type": "string", "enum": ["SALE", "RENT"], "example": "SALE" },
+                  "price": { "type": "number", "example": 250000 },
+                  "area": { "type": "number", "example": 2200 },
+                  "bedrooms": { "type": "integer", "example": 3 },
+                  "bathrooms": { "type": "integer", "example": 3 },
+                  "address": { "type": "string", "example": "123 Main St" },
+                  "city": { "type": "string", "example": "Los Angeles" },
+                  "state": { "type": "string", "example": "California" },
+                  "pincode": { "type": "string", "example": "90001" },
+                  "latitude": { "type": "number", "example": 34.0522 },
+                  "longitude": { "type": "number", "example": -118.2437 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Property listing created" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden - Buyers cannot create listings" }
+        }
+      },
+      "get": {
+        "tags": ["Properties"],
+        "summary": "List property listings with advanced filtering and pagination",
+        "parameters": [
+          { "name": "city", "in": "query", "schema": { "type": "string" }, "description": "Filter by city" },
+          { "name": "minPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "propertyType", "in": "query", "schema": { "type": "string" } },
+          { "name": "listingType", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "List of properties matching filters" }
+        }
+      }
+    },
+    "/api/properties/{id}": {
+      "get": {
+        "tags": ["Properties"],
+        "summary": "Get property listing details by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Property details" },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/properties/nearby": {
+      "get": {
+        "tags": ["Properties"],
+        "summary": "Geo-based search for properties within a radius (Haversine formula)",
+        "parameters": [
+          { "name": "lat", "in": "query", "required": true, "schema": { "type": "number" } },
+          { "name": "lng", "in": "query", "required": true, "schema": { "type": "number" } },
+          { "name": "radius", "in": "query", "schema": { "type": "number", "default": 5 } }
+        ],
+        "responses": {
+          "200": { "description": "Nearby properties list sorted by distance" }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Schedule a site visit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["propertyId", "scheduledDate"],
+                "properties": {
+                  "propertyId": { "type": "string", "example": "uuid-here" },
+                  "scheduledDate": { "type": "string", "format": "date-time", "example": "2026-07-15T14:00:00.000Z" },
+                  "notes": { "type": "string", "example": "Looking for weekend slot" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Site visit scheduled" }
+        }
+      }
+    },
+    "/api/admin/analytics": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Retrieve system aggregates and financial metrics (Admin only)",
+        "responses": {
+          "200": { "description": "Analytics retrieved successfully" },
+          "403": { "description": "Forbidden - Admins only" }
+        }
+      }
+    }
+  }
+}

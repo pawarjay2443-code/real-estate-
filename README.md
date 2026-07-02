@@ -1,36 +1,169 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Real Estate Platform Backend
 
-## Getting Started
+A production-ready, highly secure REST API backend for a Real Estate platform (similar to Zillow, 99acres, or Housing.com). This backend features property listings, agent registration/verification, search and geo-nearby filters, booking schedulers, Stripe checkout intents, review listings, notifications feeds, wishlists, and complete administrative analytics dashboards.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🛠️ Tech Stack
+- **Runtime & Language:** Node.js + Express.js (TypeScript)
+- **Database:** PostgreSQL (via Prisma ORM)
+- **Caching:** Redis (search result caching & token blacklist management)
+- **Auth:** JWT (Access + Refresh tokens) with Role-Based Access Control (RBAC)
+- **Uploads:** Multer (local `/uploads` storage & type-validated uploads)
+- **Payments:** Stripe Checkout Intents & Webhook Signature verification
+- **Validation:** Zod schemas
+- **API Docs:** Swagger UI via OpenAPI 3.0.0
+- **Testing:** Jest + Supertest integration tests
+
+---
+
+## 📁 Directory Structure
+```
+src/
+  config/         # db, redis, env, and swagger config
+  modules/        # Feature modules: controllers, services, routes, validations
+    auth/         # register, login, refresh-token, logout
+    users/        # profile updates, deletion, avatar uploads
+    agents/       # application requests, verification profiles
+    properties/   # listings filters, geo-queries, image galleries
+    inquiries/    # buyer lead registration, owner notifications
+    bookings/     # site-visit schedulers and reschedule controls
+    payments/     # Stripe intents, webhook callbacks
+    reviews/      # ratings feeds, agent score metrics
+    favorites/    # property wishlists
+    admin/        # administrative filters, system analytics
+    notifications/# alert feeds
+  middlewares/    # auth token verification, error fallback, rate limiters
+  utils/          # logger, Haversine geo-distance, response formatting
+  prisma/         # prisma models and databases schema
+  tests/          # Jest mock integration tests
+  app.ts          # express bootstrap
+  server.ts       # database link and server bootstrap
+Dockerfile        # Docker image builder settings
+docker-compose.yml# Multi-container local orchestration (Postgres, Redis, Express API)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔑 Environment Variables (.env)
+Create a `.env` file in the root directory:
+```env
+PORT=5000
+NODE_ENV=development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Database Configuration (PostgreSQL)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/realestate?schema=public"
 
-## Learn More
+# Caching (Redis)
+REDIS_URL="redis://localhost:6379"
 
-To learn more about Next.js, take a look at the following resources:
+# Security & Authentication (JWT)
+JWT_ACCESS_SECRET="real_estate_jwt_access_secret_2026_long_key"
+JWT_REFRESH_SECRET="real_estate_jwt_refresh_secret_2026_long_key"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Payment Gateway (Stripe)
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Email Notifications (Nodemailer SMTP)
+EMAIL_HOST="smtp.mailtrap.io"
+EMAIL_PORT=2525
+EMAIL_USER="your_smtp_username"
+EMAIL_PASS="your_smtp_password"
+EMAIL_FROM="noreply@realestateapp.com"
 
-## Deploy on Vercel
+# Local Storage
+UPLOAD_DIR="./public/uploads"
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+) & npm
+- PostgreSQL (running locally or inside Docker)
+- Redis (running locally or inside Docker)
+
+### Option 1: Quick Start with Docker (Recommended)
+This starts the entire stack (PostgreSQL, Redis, and Express API) automatically with one command:
+```bash
+docker-compose up --build
+```
+The server will boot on `http://localhost:5000`.
+
+### Option 2: Local Installation (Manual)
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Run database migrations:**
+   ```bash
+   npx prisma migrate dev --schema=src/prisma/schema.prisma
+   ```
+
+3. **Generate Prisma Client:**
+   ```bash
+   npx prisma generate --schema=src/prisma/schema.prisma
+   ```
+
+4. **Start the server (Development):**
+   ```bash
+   npm run server:dev
+   ```
+   The server will start listening at `http://localhost:5000`.
+
+5. **Start Swagger Docs:**
+   Open `http://localhost:5000/api-docs` in your browser.
+
+---
+
+## 🧪 Running Tests
+We use Jest and Supertest to verify authentication flow, property management permissions, and site visit bookings:
+```bash
+npm run test
+```
+
+---
+
+## 📋 API Endpoints Summary
+
+### Auth Module
+- `POST /api/auth/register` — Register new user (Buyer, Seller, Agent)
+- `POST /api/auth/login` — Log in and receive Access & Refresh JWTs
+- `POST /api/auth/refresh-token` — Rotate Access token using Refresh token
+- `POST /api/auth/logout` — Blacklist current token in Redis and log out
+- `POST /api/auth/forgot-password` — Simulate sending reset token via SMTP
+- `POST /api/auth/reset-password` — Update password using token
+- `GET /api/auth/me` — Retrieve active profile info
+
+### Properties Module
+- `POST /api/properties` — Create listing (Sellers/Agents/Admins)
+- `GET /api/properties` — Retrieve list with pagination and multiple filters (city, type, price, etc.)
+- `GET /api/properties/:id` — Retrieve full property details, images, and reviews
+- `PUT /api/properties/:id` — Update listing (Owner/Assigned Agent/Admin)
+- `DELETE /api/properties/:id` — Delete listing (Owner/Assigned Agent/Admin)
+- `POST /api/properties/:id/images` — Upload multiple images (max 10, max 5MB/image)
+- `DELETE /api/properties/:id/images/:imageId` — Delete image
+- `GET /api/properties/search?query=` — Search listings (case-insensitive text search)
+- `GET /api/properties/nearby?lat=&lng=&radius=` — Get properties within radius (Haversine formula utilizing bounding-box DB indexes)
+
+### Bookings Module
+- `POST /api/bookings` — Schedule site visit
+- `GET /api/bookings/my` — Multi-role scheduler view
+- `PATCH /api/bookings/:id` — Reschedule, cancel, or confirm visit status
+
+### Payments Module
+- `POST /api/payments/create-intent` — Create Stripe Payment Intent for deposit or brokerage
+- `POST /api/payments/webhook` — Stripe Webhook handler (listens for success/failure)
+- `GET /api/payments/my` — Fetch transactions history
+
+### Admin Module
+- `GET /api/admin/users` — Fetch users lists
+- `GET /api/admin/properties` — Fetch properties lists
+- `PATCH /api/admin/properties/:id/approve` — Approve listing
+- `GET /api/admin/analytics` — Get total listings, users, and cumulative system revenue
+- `DELETE /api/admin/users/:id` — Delete user
