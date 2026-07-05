@@ -76,16 +76,18 @@ export class AdminController {
 
   static async getAnalytics(req: Request, res: Response, next: NextFunction) {
     try {
-      const [totalListings, activeUsers, revenueAgg] = await prisma.$transaction([
+      const [totalListings, activeUsers] = await prisma.$transaction([
         prisma.property.count(),
         prisma.user.count(),
-        prisma.payment.aggregate({
-          where: { status: 'SUCCESS' },
-          _sum: { amount: true },
-        }),
       ]);
 
-      const totalRevenue = revenueAgg._sum.amount || 0;
+      // TODO: Add a Payment model to the Prisma schema and uncomment revenue aggregation
+      // const revenueAgg = await prisma.payment.aggregate({
+      //   where: { status: 'SUCCESS' },
+      //   _sum: { amount: true },
+      // });
+      // const totalRevenue = revenueAgg._sum.amount || 0;
+      const totalRevenue = 0;
 
       return sendSuccess(res, 'Admin analytics retrieved successfully', {
         totalListings,

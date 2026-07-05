@@ -1,6 +1,6 @@
 # Real Estate Platform Backend
 
-A production-ready, highly secure REST API backend for a Real Estate platform (similar to Zillow, 99acres, or Housing.com). This backend features property listings, agent registration/verification, search and geo-nearby filters, booking schedulers, Stripe checkout intents, review listings, notifications feeds, wishlists, and complete administrative analytics dashboards.
+A production-ready, highly secure REST API backend for a Real Estate platform (similar to Zillow, 99acres, or Housing.com). This backend features property listings, agent registration/verification, search and geo-nearby filters, booking schedulers, review listings, notifications feeds, wishlists, and complete administrative analytics dashboards.
 
 ---
 
@@ -10,7 +10,6 @@ A production-ready, highly secure REST API backend for a Real Estate platform (s
 - **Caching:** Redis (search result caching & token blacklist management)
 - **Auth:** JWT (Access + Refresh tokens) with Role-Based Access Control (RBAC)
 - **Uploads:** Multer (local `/uploads` storage & type-validated uploads)
-- **Payments:** Stripe Checkout Intents & Webhook Signature verification
 - **Validation:** Zod schemas
 - **API Docs:** Swagger UI via OpenAPI 3.0.0
 - **Testing:** Jest + Supertest integration tests
@@ -28,7 +27,6 @@ src/
     properties/   # listings filters, geo-queries, image galleries
     inquiries/    # buyer lead registration, owner notifications
     bookings/     # site-visit schedulers and reschedule controls
-    payments/     # Stripe intents, webhook callbacks
     reviews/      # ratings feeds, agent score metrics
     favorites/    # property wishlists
     admin/        # administrative filters, system analytics
@@ -62,10 +60,6 @@ JWT_ACCESS_SECRET="real_estate_jwt_access_secret_2026_long_key"
 JWT_REFRESH_SECRET="real_estate_jwt_refresh_secret_2026_long_key"
 JWT_ACCESS_EXPIRES_IN="15m"
 JWT_REFRESH_EXPIRES_IN="7d"
-
-# Payment Gateway (Stripe)
-STRIPE_SECRET_KEY="sk_test_..."
-STRIPE_WEBHOOK_SECRET="whsec_..."
 
 # Email Notifications (Nodemailer SMTP)
 EMAIL_HOST="smtp.mailtrap.io"
@@ -155,11 +149,6 @@ npm run test
 - `POST /api/bookings` — Schedule site visit
 - `GET /api/bookings/my` — Multi-role scheduler view
 - `PATCH /api/bookings/:id` — Reschedule, cancel, or confirm visit status
-
-### Payments Module
-- `POST /api/payments/create-intent` — Create Stripe Payment Intent for deposit or brokerage
-- `POST /api/payments/webhook` — Stripe Webhook handler (listens for success/failure)
-- `GET /api/payments/my` — Fetch transactions history
 
 ### Admin Module
 - `GET /api/admin/users` — Fetch users lists

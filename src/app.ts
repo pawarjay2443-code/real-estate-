@@ -16,7 +16,6 @@ import agentsRoutes from './modules/agents/agents.routes';
 import propertiesRoutes from './modules/properties/properties.routes';
 import inquiriesRoutes from './modules/inquiries/inquiries.routes';
 import bookingsRoutes from './modules/bookings/bookings.routes';
-import paymentsRoutes from './modules/payments/payments.routes';
 import reviewsRoutes from './modules/reviews/reviews.routes';
 import favoritesRoutes from './modules/favorites/favorites.routes';
 import adminRoutes from './modules/admin/admin.routes';
@@ -33,15 +32,7 @@ app.use(cors());
 // General Rate Limiter
 app.use('/api/', apiLimiter);
 
-// Custom Body Parser middleware to skip JSON parsing for Stripe webhook
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/payments/webhook') {
-    next();
-  } else {
-    express.json()(req, res, next);
-  }
-});
-
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request Logging
@@ -75,7 +66,6 @@ app.use('/api/agents', agentsRoutes);
 app.use('/api/properties', propertiesRoutes);
 app.use('/api/inquiries', inquiriesRoutes);
 app.use('/api/bookings', bookingsRoutes);
-app.use('/api/payments', paymentsRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/admin', adminRoutes);

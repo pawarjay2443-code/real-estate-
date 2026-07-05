@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const inquiries_controller_1 = require("./inquiries.controller");
+const validate_1 = require("../../middlewares/validate");
+const auth_1 = require("../../middlewares/auth");
+const inquiries_validation_1 = require("./inquiries.validation");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.post('/', (0, validate_1.validate)(inquiries_validation_1.createInquirySchema), inquiries_controller_1.InquiriesController.createInquiry);
+router.get('/my', inquiries_controller_1.InquiriesController.myInquiries);
+router.get('/property/:propertyId', (0, validate_1.validate)(inquiries_validation_1.getPropertyInquiriesSchema), inquiries_controller_1.InquiriesController.propertyInquiries);
+router.patch('/:id/status', (0, validate_1.validate)(inquiries_validation_1.updateInquiryStatusSchema), inquiries_controller_1.InquiriesController.updateInquiryStatus);
+exports.default = router;

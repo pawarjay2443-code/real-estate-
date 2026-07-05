@@ -38,8 +38,6 @@ services:
       - JWT_REFRESH_SECRET=real_estate_jwt_refresh_secret_2026_long_key
       - JWT_ACCESS_EXPIRES_IN=15m
       - JWT_REFRESH_EXPIRES_IN=7d
-      - STRIPE_SECRET_KEY=sk_test_mock_secret_key
-      - STRIPE_WEBHOOK_SECRET=whsec_mock_webhook_secret
       - EMAIL_HOST=smtp.mailtrap.io
       - EMAIL_PORT=2525
       - EMAIL_USER=mock_smtp_user

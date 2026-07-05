@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const properties_controller_1 = require("./properties.controller");
+const validate_1 = require("../../middlewares/validate");
+const auth_1 = require("../../middlewares/auth");
+const upload_1 = require("../../middlewares/upload");
+const properties_validation_1 = require("./properties.validation");
+const router = (0, express_1.Router)();
+// Search routes must be placed before parameterized routes
+router.get('/search', properties_controller_1.PropertiesController.searchProperties);
+router.get('/nearby', (0, validate_1.validate)(properties_validation_1.geoSearchQuerySchema), properties_controller_1.PropertiesController.nearbyProperties);
+router.get('/', (0, validate_1.validate)(properties_validation_1.listPropertiesQuerySchema), properties_controller_1.PropertiesController.listProperties);
+router.post('/', auth_1.authenticate, (0, validate_1.validate)(properties_validation_1.createPropertySchema), properties_controller_1.PropertiesController.createProperty);
+router.get('/:id', properties_controller_1.PropertiesController.getProperty);
+router.put('/:id', auth_1.authenticate, (0, validate_1.validate)(properties_validation_1.updatePropertySchema), properties_controller_1.PropertiesController.updateProperty);
+router.delete('/:id', auth_1.authenticate, properties_controller_1.PropertiesController.deleteProperty);
+router.post('/:id/images', auth_1.authenticate, upload_1.upload.array('images', 10), properties_controller_1.PropertiesController.uploadImages);
+router.delete('/:id/images/:imageId', auth_1.authenticate, properties_controller_1.PropertiesController.deleteImage);
+router.patch('/:id/status', auth_1.authenticate, (0, validate_1.validate)(properties_validation_1.updatePropertyStatusSchema), properties_controller_1.PropertiesController.updateStatus);
+exports.default = router;

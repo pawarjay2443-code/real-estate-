@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const reviews_controller_1 = require("./reviews.controller");
+const validate_1 = require("../../middlewares/validate");
+const auth_1 = require("../../middlewares/auth");
+const reviews_validation_1 = require("./reviews.validation");
+const router = (0, express_1.Router)();
+router.post('/', auth_1.authenticate, (0, validate_1.validate)(reviews_validation_1.createReviewSchema), reviews_controller_1.ReviewsController.createReview);
+router.get('/property/:propertyId', reviews_controller_1.ReviewsController.getPropertyReviews);
+router.get('/agent/:agentId', reviews_controller_1.ReviewsController.getAgentReviews);
+router.delete('/:id', auth_1.authenticate, reviews_controller_1.ReviewsController.deleteReview);
+exports.default = router;

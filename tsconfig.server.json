@@ -7,7 +7,7 @@
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
@@ -17,6 +17,7 @@
     "src/middlewares/**/*.ts",
     "src/utils/**/*.ts",
     "src/tests/**/*.ts",
+    "src/types/**/*.ts",
     "src/app.ts",
     "src/server.ts"
   ],

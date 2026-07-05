@@ -51,18 +51,6 @@ enum BookingStatus {
   COMPLETED
 }
 
-enum PaymentType {
-  BOOKING_DEPOSIT
-  BROKERAGE_FEE
-}
-
-enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
-}
-
 model User {
   id           String   @id @default(uuid())
   name         String
@@ -79,7 +67,6 @@ model User {
   properties    Property[]     @relation("UserProperties")
   inquiries     Inquiry[]
   bookings      Booking[]
-  payments      Payment[]
   reviews       Review[]
   favorites     Favorite[]
   notifications Notification[]
@@ -103,39 +90,38 @@ model Agent {
 }
 
 model Property {
-  id            String         @id @default(uuid())
-  title         String
-  description   String
-  propertyType  PropertyType
-  listingType   ListingType
-  price         Float
-  area          Float
-  bedrooms      Int
-  bathrooms     Int
-  floor         Int?
-  totalFloors    Int?
-  furnishing    String?
-  amenities     Json           @default("[]")
-  address       String
-  city          String
-  state         String
-  pincode       String
-  latitude      Float
-  longitude     Float
-  ownerId       String
-  owner         User           @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
-  agentId       String?
-  agent         Agent?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  status        PropertyStatus @default(AVAILABLE)
-  isFeatured    Boolean        @default(false)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id           String         @id @default(uuid())
+  title        String
+  description  String
+  propertyType PropertyType
+  listingType  ListingType
+  price        Float
+  area         Float
+  bedrooms     Int
+  bathrooms    Int
+  floor        Int?
+  totalFloors  Int?
+  furnishing   String?
+  amenities    Json           @default("[]")
+  address      String
+  city         String
+  state        String
+  pincode      String
+  latitude     Float
+  longitude    Float
+  ownerId      String
+  owner        User           @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
+  agentId      String?
+  agent        Agent?         @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  status       PropertyStatus @default(AVAILABLE)
+  isFeatured   Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   images    PropertyImage[]
   documents PropertyDocument[]
   inquiries Inquiry[]
   bookings  Booking[]
-  payments  Payment[]
   reviews   Review[]           @relation("PropertyReviews")
   favorites Favorite[]
 
@@ -185,20 +171,6 @@ model Booking {
   scheduledDate DateTime
   status        BookingStatus @default(PENDING)
   notes         String?
-}
-
-model Payment {
-  id                    String        @id @default(uuid())
-  userId                String
-  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  propertyId            String
-  property              Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  amount                Float
-  currency              String        @default("usd")
-  type                  PaymentType
-  status                PaymentStatus @default(PENDING)
-  stripePaymentIntentId String?       @unique
-  createdAt             DateTime      @default(now())
 }
 
 model Review {
